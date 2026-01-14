@@ -1,6 +1,6 @@
-# Weather Pro PWA (projekt na zaliczenie)
+# Weather Pro
 
-Nowoczesna aplikacja pogodowa w formie **PWA** (działa jak aplikacja na iPhone po dodaniu do ekranu początkowego).
+Nowoczesna aplikacja pogodowa.
 
 ## Funkcjonalności
 - Aktualna pogoda (temperatura, odczuwalna, wiatr, wilgotność, opady)
@@ -36,8 +36,3 @@ Najprościej:
 2. Kliknij „Udostępnij” → „Dodaj do ekranu początkowego”.
 3. Gotowe — uruchamiasz z ikonki w trybie „standalone”.
 
-## Sterowanie ulubionymi
-- Kliknij ⭐ aby dodać.
-- Dłuższe przytrzymanie / prawy klik na chipie usuwa ulubione.
-
-Powodzenia na zaliczeniu!
