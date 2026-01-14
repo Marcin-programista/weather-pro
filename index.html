@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="Nowoczesna aplikacja pogodowa PWA z prognozą godzinową, 7-dniową, jakością powietrza, ulubionymi miejscami i mapą opadów." />
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Weather Pro">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icons/icon-192.png" />
+  <link rel="preconnect" href="https://api.open-meteo.com" />
+  <link rel="preconnect" href="https://geocoding-api.open-meteo.com" />
+  <link rel="preconnect" href="https://air-quality-api.open-meteo.com" />
+  <link rel="preconnect" href="https://api.rainviewer.com" />
+
+  <!-- Leaflet (mapa) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <link rel="stylesheet" href="styles.css" />
+  <title>Weather Pro PWA</title>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">☁️</div>
+        <div>
+          <div class="brand-title">Weather Pro</div>
+          <div class="brand-subtitle" id="subtitle">Prognoza • AQI • Mapa opadów</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="icon-btn" id="themeBtn" title="Zmień motyw" aria-label="Zmień motyw">
+          <span id="themeIcon">🌙</span>
+        </button>
+        <button class="icon-btn" id="locateBtn" title="Pogoda u mnie" aria-label="Pogoda u mnie">
+          📍
+        </button>
+      </div>
+    </header>
+
+    <section class="search">
+      <div class="searchbox">
+        <input id="searchInput" type="search" placeholder="Wpisz miasto lub miejsce (np. Warszawa)…" autocomplete="off" />
+        <button class="primary" id="searchBtn">Szukaj</button>
+      </div>
+      <div class="search-meta">
+        <div class="chips" id="favoritesChips" aria-label="Ulubione miejsca"></div>
+        <div class="hint" id="hint"></div>
+      </div>
+      <div class="dropdown" id="suggestions" role="listbox" aria-label="Sugestie lokalizacji"></div>
+    </section>
+
+    <main class="content">
+      <section class="grid">
+        <article class="card hero" id="currentCard">
+          <div class="card-head">
+            <div>
+              <div class="kicker" id="placeName">—</div>
+              <div class="headline">
+                <span id="tempNow">—</span><span class="unit">°C</span>
+              </div>
+              <div class="sub" id="summaryNow">—</div>
+              <div class="meta" id="updatedAt">—</div>
+            </div>
+            <div class="wx-icon" id="wxIcon" aria-hidden="true">⛅</div>
+          </div>
+
+          <div class="stats">
+            <div class="stat"><div class="label">Odczuwalna</div><div class="value" id="feelsLike">—</div></div>
+            <div class="stat"><div class="label">Wiatr</div><div class="value" id="wind">—</div></div>
+            <div class="stat"><div class="label">Wilgotność</div><div class="value" id="humidity">—</div></div>
+            <div class="stat"><div class="label">Opady</div><div class="value" id="precip">—</div></div>
+          </div>
+
+          <div class="hero-actions">
+            <button class="ghost" id="favBtn">⭐ Dodaj do ulubionych</button>
+            <button class="ghost" id="shareBtn">🔗 Udostępnij</button>
+          </div>
+
+          <div class="alerts" id="alerts"></div>
+        </article>
+
+        <article class="card" id="airCard">
+          <div class="card-title">Jakość powietrza</div>
+          <div class="aqi">
+            <div class="aqi-badge" id="aqiBadge">—</div>
+            <div>
+              <div class="aqi-title" id="aqiTitle">—</div>
+              <div class="aqi-sub" id="aqiSub">—</div>
+            </div>
+          </div>
+          <div class="stats small">
+            <div class="stat"><div class="label">PM2.5</div><div class="value" id="pm25">—</div></div>
+            <div class="stat"><div class="label">PM10</div><div class="value" id="pm10">—</div></div>
+            <div class="stat"><div class="label">EU AQI</div><div class="value" id="euAqi">—</div></div>
+          </div>
+          <div class="note" id="aqiNote">—</div>
+        </article>
+
+        <article class="card" id="hourlyCard">
+          <div class="card-title">Prognoza godzinowa (24h)</div>
+          <div class="scroll" id="hourly"></div>
+        </article>
+
+        <article class="card" id="dailyCard">
+          <div class="card-title">Prognoza 7 dni</div>
+          <div class="list" id="daily"></div>
+        </article>
+
+        <article class="card map-card" id="mapCard">
+          <div class="map-head">
+            <div>
+              <div class="card-title">Mapa opadów</div>
+              <div class="sub">Warstwa radarowa RainViewer na mapie OSM.</div>
+            </div>
+            <div class="map-actions">
+              <button class="ghost" id="radarToggleBtn">⛈️ Radar: ON</button>
+              <button class="ghost" id="centerMapBtn">🎯 Wyśrodkuj</button>
+            </div>
+          </div>
+          <div id="map" class="map"></div>
+          <div class="note">
+            Źródła: Open‑Meteo (pogoda, geokodowanie, AQI) oraz RainViewer (radar opadów). Dane mają charakter informacyjny.
+          </div>
+        </article>
+      </section>
+
+      <section class="footer">
+        <div class="foot-left">
+          <div class="foot-title">Weather Pro PWA</div>
+          <div class="foot-sub">
+            Działa offline (ostatnie dane), ma ulubione miejsca, geolokalizację i mapę opadów. Idealne na zaliczenie.
+          </div>
+        </div>
+        <div class="foot-right">
+          <a class="link" href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open‑Meteo</a>
+          <span class="sep">•</span>
+          <a class="link" href="https://www.rainviewer.com/" target="_blank" rel="noreferrer">RainViewer</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>
